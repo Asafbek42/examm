@@ -7,7 +7,6 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    final box = context.watch<GameBox>();
 
     return DefaultTabController(
       length: 4,
