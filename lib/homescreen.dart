@@ -1,3 +1,5 @@
+// главный экран
+import 'package:examm/aboutgame.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'box/game_box.dart';
@@ -7,7 +9,6 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
   @override
   Widget build(BuildContext context) {
-
     return DefaultTabController(
       length: 4,
       child: Scaffold(
@@ -47,7 +48,6 @@ class HomeScreen extends StatelessWidget {
                           icon: Icon(Icons.search, color: Colors.grey),
                           hintText: 'Search',
                           hintStyle: TextStyle(color: Colors.grey),
-                          border: InputBorder.none,
                         ),
                       ),
                     ),
@@ -63,8 +63,6 @@ class HomeScreen extends StatelessWidget {
                       border: Border.all(color: Colors.white),
                     ),
                     child: InkWell(
-                      focusColor: const Color.fromARGB(255, 99, 97, 97),
-                      splashColor: Colors.white,
                       onTap: () {},
                       child: const Icon(
                         Icons.notification_add,
@@ -88,7 +86,7 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.deepPurpleAccent,
+          backgroundColor: Colors.grey,
           onPressed: () => _showAddGameDialog(context),
           child: const Icon(Icons.add),
         ),
@@ -121,7 +119,6 @@ class HomeScreen extends StatelessWidget {
                     final newGame = Game(
                       id: DateTime.now().millisecondsSinceEpoch,
                       title: title,
-                      // Ставим дефолтную картинку
                       image: 'https://picsum.photos/seed/defaultgame/400/600',
                     );
                     context.read<GameBox>().addGame(newGame);
@@ -148,14 +145,24 @@ class GameGrid extends StatelessWidget {
         crossAxisCount: 5,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio:
-            2 / 3, 
+        childAspectRatio: 3 / 3,
       ),
       itemCount: games.length,
       itemBuilder: (context, index) {
         final game = games[index];
         final isFavorite = context.watch<GameBox>().isFavorite(game);
-        return GameCard(game: game, isFavorite: isFavorite);
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AboutGamee(gameId: game.id),
+              ),
+            );
+          },
+
+          child: GameCard(game: game, isFavorite: isFavorite),
+        );
       },
     );
   }

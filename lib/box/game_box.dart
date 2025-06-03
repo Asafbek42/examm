@@ -3,16 +3,15 @@ import 'package:flutter/material.dart';
 import '../models/game.dart';
 
 class GameBox extends ChangeNotifier {
-  final List<Game> _apiGames = [];
-  final List<Game> _userGames = [];
+  final List<Game> _games = [];
   final List<Game> _favorites = [];
   bool isLoading = false;
 
-  List<Game> get games => [..._userGames, ..._apiGames];
+  List<Game> get games => _games;
   List<Game> get favorites => _favorites;
 
   final GameRepository _repository = GameRepository();
-
+  final List<Game> _localAddedGames = [];
   Future<void> loadGames() async {
     try {
       isLoading = true;
@@ -20,18 +19,19 @@ class GameBox extends ChangeNotifier {
 
       final fetchedGames = await _repository.fetchGames();
 
-      final updatedGames = fetchedGames.map((game) {
-        final imageUrl = (game.image.isNotEmpty &&
-                Uri.tryParse(game.image)?.hasAbsolutePath == true)
-            ? game.image
-            : 'https://picsum.photos/seed/${game.id}/1000/1200';
-        return Game(id: game.id, title: game.title, image: imageUrl);
-      }).toList();
+      final updatedGames =
+          fetchedGames.map((game) {
+            final imageUrl =
+                game.image.isNotEmpty
+                    ? game.image
+                    : 'https://picsum.photos/seed/${game.id}/1000/1200';
+            return Game(id: game.id, title: game.title, image: imageUrl);
+          }).toList();
 
-      _apiGames.clear();
-      _apiGames.addAll(updatedGames);
+      _games.clear();
+      _games.addAll(updatedGames);
     } catch (e) {
-      print('xato');
+      print('xato: $e');
     } finally {
       isLoading = false;
       notifyListeners();
@@ -39,22 +39,31 @@ class GameBox extends ChangeNotifier {
   }
 
   void addGame(Game game) {
-    _userGames.add(game);
+    _localAddedGames.add(game);
+
+    _games.add(game);
     notifyListeners();
   }
 
   void deleteGame(int id) {
-    _userGames.removeWhere((g) => g.id == id);
-    _apiGames.removeWhere((g) => g.id == id);
+    _games.removeWhere((g) => g.id == id);
     _favorites.removeWhere((g) => g.id == id);
+    _localAddedGames.removeWhere((g) => g.id == id);
     notifyListeners();
   }
 
   void updateGame(Game updatedGame) {
-    final index = _userGames.indexWhere((g) => g.id == updatedGame.id);
+    final index = _games.indexWhere((g) => g.id == updatedGame.id);
     if (index != -1) {
-      _userGames[index] = updatedGame;
+      _games[index] = updatedGame;
       notifyListeners();
+    }
+
+    final localIndex = _localAddedGames.indexWhere(
+      (g) => g.id == updatedGame.id,
+    );
+    if (localIndex != -1) {
+      _localAddedGames[localIndex] = updatedGame;
     }
   }
 
