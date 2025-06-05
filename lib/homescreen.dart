@@ -1,12 +1,12 @@
-// главный экран
-import 'package:examm/aboutgame.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'aboutgame.dart';
 import 'box/game_box.dart';
 import 'models/game.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -48,6 +48,7 @@ class HomeScreen extends StatelessWidget {
                           icon: Icon(Icons.search, color: Colors.grey),
                           hintText: 'Search',
                           hintStyle: TextStyle(color: Colors.grey),
+                          border: InputBorder.none,
                         ),
                       ),
                     ),
@@ -76,10 +77,10 @@ class HomeScreen extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
-                  const GameGrid(),
-                  const GameGrid(),
-                  const GameGrid(),
-                  const FavoritesGrid(),
+                  GameGrid(),
+                  GameGrid(),
+                  GameGrid(),
+                  FavoritesGrid(),
                 ],
               ),
             ),
@@ -99,36 +100,38 @@ class HomeScreen extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Add Game'),
-            content: TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  final title = titleController.text.trim();
-                  if (title.isNotEmpty) {
-                    final newGame = Game(
-                      id: DateTime.now().millisecondsSinceEpoch,
-                      title: title,
-                      image: 'https://picsum.photos/seed/defaultgame/400/600',
-                    );
-                    context.read<GameBox>().addGame(newGame);
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Add'),
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        title: const Text('Add Game'),
+        content: TextField(
+          controller: titleController,
+          decoration: const InputDecoration(labelText: 'Title'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
+          ElevatedButton(
+            onPressed: () {
+              final name = titleController.text.trim();
+              if (name.isNotEmpty) {
+                final newGame = Game(
+                  id: DateTime.now().millisecondsSinceEpoch,
+                  name: name,
+                  genre: [],
+                  developers: [],
+                  publishers: [],
+                  releaseDates: {}, imageAsset: '',
+                );
+                context.read<GameBox>().addGame(newGame);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -138,7 +141,7 @@ class GameGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final games = context.watch<GameBox>().games;
+    final games = context.watch<GameBox>().games.reversed.toList();
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -151,6 +154,8 @@ class GameGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         final game = games[index];
         final isFavorite = context.watch<GameBox>().isFavorite(game);
+        final imageAsset = 'assets/images/game${index % 4}.png';
+
         return InkWell(
           onTap: () {
             Navigator.push(
@@ -160,8 +165,11 @@ class GameGrid extends StatelessWidget {
               ),
             );
           },
-
-          child: GameCard(game: game, isFavorite: isFavorite),
+          child: GameCard(
+            game: game,
+            isFavorite: isFavorite,
+            imageAsset: imageAsset,
+          ),
         );
       },
     );
@@ -174,7 +182,6 @@ class FavoritesGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final favorites = context.watch<GameBox>().favorites;
-
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -186,7 +193,13 @@ class FavoritesGrid extends StatelessWidget {
       itemCount: favorites.length,
       itemBuilder: (context, index) {
         final game = favorites[index];
-        return GameCard(game: game, isFavorite: true);
+        final imageAsset = 'assets/images/game${index % 4}.png';
+
+        return GameCard(
+          game: game,
+          isFavorite: true,
+          imageAsset: imageAsset,
+        );
       },
     );
   }
@@ -195,8 +208,14 @@ class FavoritesGrid extends StatelessWidget {
 class GameCard extends StatelessWidget {
   final Game game;
   final bool isFavorite;
+  final String imageAsset;
 
-  const GameCard({super.key, required this.game, this.isFavorite = false});
+  const GameCard({
+    super.key,
+    required this.game,
+    required this.isFavorite,
+    required this.imageAsset,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -211,26 +230,26 @@ class GameCard extends StatelessWidget {
         children: [
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
-              ),
-              child: Image.network(
-                game.image,
-                fit: BoxFit.cover,
-                errorBuilder:
-                    (_, __, ___) =>
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(color: Colors.black), 
+                  Image.asset(
+                    imageAsset,
+                    fit: BoxFit.fitWidth,
+                    alignment: Alignment.topCenter,
+                    errorBuilder: (_, __, ___) =>
                         const Center(child: Icon(Icons.broken_image, size: 40)),
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return const Center(child: CircularProgressIndicator());
-                },
+                  ),
+                ],
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
             child: Text(
-              game.title,
+              game.name,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -283,40 +302,43 @@ class GameCard extends StatelessWidget {
   }
 
   void _showEditGameDialog(BuildContext context, Game game) {
-    final titleController = TextEditingController(text: game.title);
+    final titleController = TextEditingController(text: game.name);
 
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Edit Game'),
-            content: TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  final updatedTitle = titleController.text;
-                  if (updatedTitle.isNotEmpty) {
-                    final updatedGame = Game(
-                      id: game.id,
-                      title: updatedTitle,
-                      image: game.image,
-                    );
-                    context.read<GameBox>().updateGame(updatedGame);
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Update'),
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        title: const Text('Edit Game'),
+        content: TextField(
+          controller: titleController,
+          decoration: const InputDecoration(labelText: 'Title'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
+          ElevatedButton(
+            onPressed: () {
+              final updatedTitle = titleController.text;
+              if (updatedTitle.isNotEmpty) {
+                final updatedGame = Game(
+                  id: game.id,
+                  name: updatedTitle,
+                  genre: game.genre,
+                  developers: game.developers,
+                  publishers: game.publishers,
+                  releaseDates: game.releaseDates,
+                  imageAsset: '',
+                );
+                context.read<GameBox>().updateGame(updatedGame);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
     );
   }
 }

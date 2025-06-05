@@ -2,84 +2,67 @@ import 'package:examm/repository/repository/game_repository.dart';
 import 'package:flutter/material.dart';
 import '../models/game.dart';
 
-class GameBox extends ChangeNotifier {
-  final List<Game> _games = [];
-  final List<Game> _favorites = [];
-  bool isLoading = false;
+
+
+class GameBox with ChangeNotifier {
+  List<Game> _games = [];
+  final List<int> _favoriteGameIds = [];
 
   List<Game> get games => _games;
-  List<Game> get favorites => _favorites;
 
-  final GameRepository _repository = GameRepository();
-  final List<Game> _localAddedGames = [];
-  Future<void> loadGames() async {
-    try {
-      isLoading = true;
-      notifyListeners();
 
-      final fetchedGames = await _repository.fetchGames();
+  List<Game> get favorites =>
+      _games.where((game) => _favoriteGameIds.contains(game.id)).toList();
 
-      final updatedGames =
-          fetchedGames.map((game) {
-            final imageUrl =
-                game.image.isNotEmpty
-                    ? game.image
-                    : 'https://picsum.photos/seed/${game.id}/1000/1200';
-            return Game(id: game.id, title: game.title, image: imageUrl);
-          }).toList();
-
-      _games.clear();
-      _games.addAll(updatedGames);
-    } catch (e) {
-      print('xato: $e');
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  void addGame(Game game) {
-    _localAddedGames.add(game);
-
-    _games.add(game);
+  Future<void> fetchGames() async {
+    _games = await GameRepository().fetchGames();
     notifyListeners();
   }
 
-  void deleteGame(int id) {
-    _games.removeWhere((g) => g.id == id);
-    _favorites.removeWhere((g) => g.id == id);
-    _localAddedGames.removeWhere((g) => g.id == id);
+  Future<void> addGame(Game game) async {
+    final newGame = await GameRepository().addGame(game);
+    _games.add(newGame);
     notifyListeners();
   }
 
-  void updateGame(Game updatedGame) {
-    final index = _games.indexWhere((g) => g.id == updatedGame.id);
+  Future<void> updateGame(Game game) async {
+    await GameRepository().updateGame(game);
+    final index = _games.indexWhere((g) => g.id == game.id);
     if (index != -1) {
-      _games[index] = updatedGame;
+      _games[index] = game;
       notifyListeners();
     }
-
-    final localIndex = _localAddedGames.indexWhere(
-      (g) => g.id == updatedGame.id,
-    );
-    if (localIndex != -1) {
-      _localAddedGames[localIndex] = updatedGame;
-    }
   }
+
+  Future<void> deleteGame(int id) async {
+    await GameRepository().deleteGame(id);
+    _games.removeWhere((g) => g.id == id);
+    _favoriteGameIds.remove(id);
+    notifyListeners();
+  }
+
+  bool isFavorite(Game game) => _favoriteGameIds.contains(game.id);
 
   void addToFavorites(Game game) {
-    if (!_favorites.contains(game)) {
-      _favorites.add(game);
+    if (!isFavorite(game)) {
+      _favoriteGameIds.add(game.id);
       notifyListeners();
     }
   }
 
   void removeFromFavorites(Game game) {
-    _favorites.remove(game);
-    notifyListeners();
+    if (isFavorite(game)) {
+      _favoriteGameIds.remove(game.id);
+      notifyListeners();
+    }
   }
 
-  bool isFavorite(Game game) {
-    return _favorites.contains(game);
+  void toggleFavorite(Game game) {
+    if (isFavorite(game)) {
+      _favoriteGameIds.remove(game.id);
+    } else {
+      _favoriteGameIds.add(game.id);
+    }
+    notifyListeners();
   }
 }
