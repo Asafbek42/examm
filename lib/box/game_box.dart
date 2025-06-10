@@ -2,14 +2,11 @@ import 'package:examm/repository/repository/game_repository.dart';
 import 'package:flutter/material.dart';
 import '../models/game.dart';
 
-
-
 class GameBox with ChangeNotifier {
   List<Game> _games = [];
   final List<int> _favoriteGameIds = [];
 
   List<Game> get games => _games;
-
 
   List<Game> get favorites =>
       _games.where((game) => _favoriteGameIds.contains(game.id)).toList();

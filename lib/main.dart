@@ -6,12 +6,11 @@ import 'box/game_box.dart';
 void main() {
   runApp(
     ChangeNotifierProvider(
-      create: (_) => GameBox()..fetchGames(), 
+      create: (_) => GameBox()..fetchGames(),
       child: const MyApp(),
     ),
   );
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

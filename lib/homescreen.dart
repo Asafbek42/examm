@@ -76,12 +76,7 @@ class HomeScreen extends StatelessWidget {
             ),
             Expanded(
               child: TabBarView(
-                children: [
-                  GameGrid(),
-                  GameGrid(),
-                  GameGrid(),
-                  FavoritesGrid(),
-                ],
+                children: [GameGrid(), GameGrid(), GameGrid(), FavoritesGrid()],
               ),
             ),
           ],
@@ -100,38 +95,40 @@ class HomeScreen extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add Game'),
-        content: TextField(
-          controller: titleController,
-          decoration: const InputDecoration(labelText: 'Title'),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Add Game'),
+            content: TextField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Title'),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final name = titleController.text.trim();
+                  if (name.isNotEmpty) {
+                    final newGame = Game(
+                      id: DateTime.now().millisecondsSinceEpoch,
+                      name: name,
+                      genre: [],
+                      developers: [],
+                      publishers: [],
+                      releaseDates: {},
+                      imageAsset: '',
+                    );
+                    context.read<GameBox>().addGame(newGame);
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Add'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              final name = titleController.text.trim();
-              if (name.isNotEmpty) {
-                final newGame = Game(
-                  id: DateTime.now().millisecondsSinceEpoch,
-                  name: name,
-                  genre: [],
-                  developers: [],
-                  publishers: [],
-                  releaseDates: {}, imageAsset: '',
-                );
-                context.read<GameBox>().addGame(newGame);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -195,11 +192,7 @@ class FavoritesGrid extends StatelessWidget {
         final game = favorites[index];
         final imageAsset = 'assets/images/game${index % 4}.png';
 
-        return GameCard(
-          game: game,
-          isFavorite: true,
-          imageAsset: imageAsset,
-        );
+        return GameCard(game: game, isFavorite: true, imageAsset: imageAsset);
       },
     );
   }
@@ -230,17 +223,21 @@ class GameCard extends StatelessWidget {
         children: [
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(color: Colors.black), 
+                  Container(color: Colors.black),
                   Image.asset(
                     imageAsset,
                     fit: BoxFit.fitWidth,
                     alignment: Alignment.topCenter,
-                    errorBuilder: (_, __, ___) =>
-                        const Center(child: Icon(Icons.broken_image, size: 40)),
+                    errorBuilder:
+                        (_, __, ___) => const Center(
+                          child: Icon(Icons.broken_image, size: 40),
+                        ),
                   ),
                 ],
               ),
@@ -306,39 +303,40 @@ class GameCard extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Edit Game'),
-        content: TextField(
-          controller: titleController,
-          decoration: const InputDecoration(labelText: 'Title'),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Edit Game'),
+            content: TextField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Title'),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final updatedTitle = titleController.text;
+                  if (updatedTitle.isNotEmpty) {
+                    final updatedGame = Game(
+                      id: game.id,
+                      name: updatedTitle,
+                      genre: game.genre,
+                      developers: game.developers,
+                      publishers: game.publishers,
+                      releaseDates: game.releaseDates,
+                      imageAsset: '',
+                    );
+                    context.read<GameBox>().updateGame(updatedGame);
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Update'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              final updatedTitle = titleController.text;
-              if (updatedTitle.isNotEmpty) {
-                final updatedGame = Game(
-                  id: game.id,
-                  name: updatedTitle,
-                  genre: game.genre,
-                  developers: game.developers,
-                  publishers: game.publishers,
-                  releaseDates: game.releaseDates,
-                  imageAsset: '',
-                );
-                context.read<GameBox>().updateGame(updatedGame);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -79,9 +79,7 @@ class _AboutGameeState extends State<AboutGamee> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(gameData?['title'] ?? 'Игра'),
-      ),
+      appBar: AppBar(title: Text(gameData?['title'] ?? 'Игра')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -91,8 +89,9 @@ class _AboutGameeState extends State<AboutGamee> {
               Image.network(
                 gameData!['image'],
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    const Center(child: Icon(Icons.broken_image, size: 40)),
+                errorBuilder:
+                    (_, __, ___) =>
+                        const Center(child: Icon(Icons.broken_image, size: 40)),
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return const Center(child: CircularProgressIndicator());
@@ -105,11 +104,17 @@ class _AboutGameeState extends State<AboutGamee> {
             ),
             const SizedBox(height: 8),
             if (gameData?['genre'] != null)
-              Text('Жанры: ${List<String>.from(gameData!['genre']).join(', ')}'),
+              Text(
+                'Жанры: ${List<String>.from(gameData!['genre']).join(', ')}',
+              ),
             if (gameData?['developers'] != null)
-              Text('Разработчики: ${List<String>.from(gameData!['developers']).join(', ')}'),
+              Text(
+                'Разработчики: ${List<String>.from(gameData!['developers']).join(', ')}',
+              ),
             if (gameData?['publishers'] != null)
-              Text('Издатели: ${List<String>.from(gameData!['publishers']).join(', ')}'),
+              Text(
+                'Издатели: ${List<String>.from(gameData!['publishers']).join(', ')}',
+              ),
             const SizedBox(height: 8),
             if (gameData?['releaseDates'] != null)
               Column(
@@ -119,10 +124,9 @@ class _AboutGameeState extends State<AboutGamee> {
                     'Даты выхода:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  ...Map<String, dynamic>.from(gameData!['releaseDates'])
-                      .entries
-                      .map(
-                        (e) => Text('${e.key}: ${e.value}'),).toList(),
+                  ...Map<String, dynamic>.from(
+                    gameData!['releaseDates'],
+                  ).entries.map((e) => Text('${e.key}: ${e.value}')).toList(),
                 ],
               ),
           ],
